@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,6 @@ import { Loader2, Mail, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function AuthScreen() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -82,7 +80,10 @@ export function AuthScreen() {
       return;
     }
     toast.success("Welcome back!");
-    router.refresh();
+    // signIn with redirect:false sets the session cookie but useSession() won't
+    // automatically refetch its cached state. A hard navigation to "/" forces a
+    // full re-mount so the app reads the fresh session and shows the Dashboard.
+    window.location.replace("/");
   }
 
   return (
