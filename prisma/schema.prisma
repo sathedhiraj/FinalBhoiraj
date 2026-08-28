@@ -1,0 +1,91 @@
+// This is your Prisma schema file for the Ganesh Mandal Management App.
+// Database: SQLite (configured stack)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Application user (admin). Authenticated via NextAuth credentials provider.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("admin") // admin | member
+  mandalId     String?  // the mandal this admin owns (null until onboarding)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  mandal Mandal? @relation(fields: [mandalId], references: [id], onDelete: SetNull)
+}
+
+/// A Ganesh Mandal (organisation) profile. Each admin owns one Mandal.
+model Mandal {
+  id                  String   @id @default(cuid())
+  name                String
+  address             String
+  establishedYear     Int
+  registrationNumber  String
+  phone               String
+  logoUrl             String?
+
+  // Receipt settings (per mandal)
+  receiptHeader       String   @default("Shree Ganesh")
+  receiptFooter       String   @default("Ganpati Bappa Morya!")
+  receiptPrefix       String   @default("GM-")
+  receiptNextNumber   Int      @default(1)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  festivals     Festival[]
+  transactions  Transaction[]
+  users         User[]
+}
+
+/// A festival / utsav under a mandal. Each festival has isolated finances.
+model Festival {
+  id        String   @id @default(cuid())
+  mandalId  String
+  name      String
+  year      Int
+  status    String   @default("active") // active | closed
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mandal        Mandal       @relation(fields: [mandalId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+}
+
+/// A single financial transaction (income or expense) tied to a mandal + festival.
+model Transaction {
+  id            String   @id @default(cuid())
+  mandalId      String
+  festivalId    String
+  type          String   // "income" | "expense"
+  amount        Float
+  category      String
+  paymentMode   String   // "cash" | "upi"
+  donorName     String?
+  mobile        String?
+  vendorName    String?
+  note          String?
+  billImageUrl  String?
+  receiptNumber String?
+  date          DateTime
+  createdAt     DateTime @default(now())
+  createdBy     String
+
+  mandal   Mandal   @relation(fields: [mandalId], references: [id], onDelete: Cascade)
+  festival Festival @relation(fields: [festivalId], references: [id], onDelete: Cascade)
+
+  @@index([mandalId, festivalId])
+  @@index([type])
+  @@index([date])
+}
