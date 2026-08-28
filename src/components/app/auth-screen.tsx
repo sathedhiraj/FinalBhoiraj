@@ -47,7 +47,9 @@ export function AuthScreen() {
     };
   }, []);
 
-  // One-click recovery: reset the default admin password back to admin123.
+  // One-click recovery: reset the default admin password back to admin123,
+  // pre-fill the form AND automatically log in so the user lands on the dashboard.
+  const [autoLoggingIn, setAutoLoggingIn] = useState(false);
   async function resetToDefault() {
     setResetting(true);
     try {
@@ -58,12 +60,27 @@ export function AuthScreen() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Reset failed");
-      setEmail(data.credentials.email);
-      setPassword(data.credentials.password);
-      toast.success("Password reset to default. You can log in now.");
+      const creds = data.credentials;
+      setEmail(creds.email);
+      setPassword(creds.password);
+      toast.success("Password reset to default. Logging you in…");
+      // Auto-submit the login so the user lands on the dashboard without
+      // needing to click Login again.
+      setResetting(false);
+      setAutoLoggingIn(true);
+      const res2 = await signIn("credentials", {
+        email: creds.email,
+        password: creds.password,
+        redirect: false,
+      });
+      setAutoLoggingIn(false);
+      if (res2?.error) {
+        toast.error("Login failed after reset. Please try manually.");
+        return;
+      }
+      window.location.replace("/");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Reset failed");
-    } finally {
       setResetting(false);
     }
   }
@@ -76,7 +93,9 @@ export function AuthScreen() {
     const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (res?.error) {
-      toast.error("Invalid email or password.");
+      toast.error("Invalid email or password. Use \"Reset password to default\" below to recover.", {
+        duration: 5000,
+      });
       return;
     }
     toast.success("Welcome back!");
@@ -144,8 +163,8 @@ export function AuthScreen() {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full h-12 rounded-xl text-base font-semibold">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Login"}
+            <Button type="submit" disabled={loading || resetting || autoLoggingIn} className="w-full h-12 rounded-xl text-base font-semibold">
+              {loading || autoLoggingIn ? <Loader2 className="h-5 w-5 animate-spin" /> : "Login"}
             </Button>
           </form>
 
@@ -155,7 +174,7 @@ export function AuthScreen() {
             </div>
           )}
 
-          {/* Always-visible default credentials + recovery helper. */}
+          {/* Always-visible default credentials + one-click recovery. */}
           <div className="text-xs rounded-xl bg-muted px-3 py-3 leading-relaxed space-y-2">
             <div>
               <span className="font-semibold text-foreground">Default admin credentials:</span>
@@ -165,10 +184,17 @@ export function AuthScreen() {
             <button
               type="button"
               onClick={resetToDefault}
-              disabled={resetting}
-              className="text-primary font-medium hover:underline disabled:opacity-60"
+              disabled={resetting || autoLoggingIn}
+              className="inline-flex items-center gap-1.5 text-primary font-semibold hover:underline disabled:opacity-60"
             >
-              {resetting ? "Resetting…" : "Reset password to default"}
+              {resetting || autoLoggingIn ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {resetting ? "Resetting…" : "Logging you in…"}
+                </>
+              ) : (
+                "Reset password & log in"
+              )}
             </button>
           </div>
         </div>
