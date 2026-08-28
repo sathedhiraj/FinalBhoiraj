@@ -25,6 +25,7 @@ export function AuthScreen() {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [seedMsg, setSeedMsg] = useState<string | null>(null);
 
   // One-time bootstrap so the operator can actually log in.
@@ -47,6 +48,27 @@ export function AuthScreen() {
       active = false;
     };
   }, []);
+
+  // One-click recovery: reset the default admin password back to admin123.
+  async function resetToDefault() {
+    setResetting(true);
+    try {
+      const res = await fetch("/api/seed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Reset failed");
+      setEmail(data.credentials.email);
+      setPassword(data.credentials.password);
+      toast.success("Password reset to default. You can log in now.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Reset failed");
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -131,6 +153,23 @@ export function AuthScreen() {
               <span className="font-semibold">First-time setup:</span> {seedMsg}
             </div>
           )}
+
+          {/* Always-visible default credentials + recovery helper. */}
+          <div className="text-xs rounded-xl bg-muted px-3 py-3 leading-relaxed space-y-2">
+            <div>
+              <span className="font-semibold text-foreground">Default admin credentials:</span>
+              <br />
+              Email: <code className="font-mono">admin@mandal.in</code> · Password: <code className="font-mono">admin123</code>
+            </div>
+            <button
+              type="button"
+              onClick={resetToDefault}
+              disabled={resetting}
+              className="text-primary font-medium hover:underline disabled:opacity-60"
+            >
+              {resetting ? "Resetting…" : "Reset password to default"}
+            </button>
+          </div>
         </div>
       </div>
 
