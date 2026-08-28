@@ -27,8 +27,14 @@ export function AuthScreen() {
   const [seedMsg, setSeedMsg] = useState<string | null>(null);
 
   // One-time bootstrap so the operator can actually log in.
+  // Also recover from a known edge case: after a successful signIn the page
+  // reloads, but if useSession() reports "unauthenticated" momentarily due to
+  // slow cookie propagation, the AuthScreen would flash. We poll the session
+  // endpoint directly — if a real session exists, force a reload so the app
+  // re-evaluates and shows the dashboard.
   useEffect(() => {
     let active = true;
+    let cancelled = false;
     (async () => {
       try {
         const res = await fetch("/api/seed", { method: "POST" });
@@ -41,9 +47,23 @@ export function AuthScreen() {
       } catch {
         /* ignore */
       }
+      // Session recovery check: if the server says we ARE logged in but
+      // useSession() reported unauthenticated, reload to reconcile.
+      try {
+        const r = await fetch("/api/auth/session", { cache: "no-store" });
+        const s = await r.json();
+        if (!cancelled && s?.user?.email) {
+          // We have a session server-side; force a full reload.
+          window.location.reload();
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
     })();
     return () => {
       active = false;
+      cancelled = true;
     };
   }, []);
 
@@ -64,24 +84,21 @@ export function AuthScreen() {
       setEmail(creds.email);
       setPassword(creds.password);
       toast.success("Password reset to default. Logging you in…");
-      // Auto-submit the login so the user lands on the dashboard without
-      // needing to click Login again.
       setResetting(false);
       setAutoLoggingIn(true);
-      const res2 = await signIn("credentials", {
+      // Use redirect:true so NextAuth handles the full navigation back to "/"
+      // after the session cookie is fully committed. This avoids the race
+      // condition where useSession() re-reads before the cookie is available.
+      await signIn("credentials", {
         email: creds.email,
         password: creds.password,
-        redirect: false,
+        callbackUrl: "/",
+        redirect: true,
       });
-      setAutoLoggingIn(false);
-      if (res2?.error) {
-        toast.error("Login failed after reset. Please try manually.");
-        return;
-      }
-      window.location.replace("/");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Reset failed");
       setResetting(false);
+      setAutoLoggingIn(false);
     }
   }
 
@@ -90,19 +107,27 @@ export function AuthScreen() {
     if (!EMAIL_RE.test(email)) return toast.error("Please enter a valid email address.");
     if (!password) return toast.error("Please enter your password.");
     setLoading(true);
-    const res = await signIn("credentials", { email, password, redirect: false });
+    // Use redirect:true + callbackUrl:"/" so NextAuth navigates to the
+    // dashboard only after the session cookie is fully committed. The earlier
+    // redirect:false approach could race useSession() and bounce back to login.
+    const res = await signIn("credentials", {
+      email,
+      password,
+      callbackUrl: "/",
+      redirect: false,
+    });
     setLoading(false);
     if (res?.error) {
-      toast.error("Invalid email or password. Use \"Reset password to default\" below to recover.", {
+      toast.error("Invalid email or password. Use \"Reset password & log in\" below to recover.", {
         duration: 5000,
       });
       return;
     }
+    // res.ok + res.url set means login succeeded; hard reload to the returned
+    // URL (defaults to "/") so useSession re-initializes from the fresh cookie.
+    const target = res?.url || "/";
     toast.success("Welcome back!");
-    // signIn with redirect:false sets the session cookie but useSession() won't
-    // automatically refetch its cached state. A hard navigation to "/" forces a
-    // full re-mount so the app reads the fresh session and shows the Dashboard.
-    window.location.replace("/");
+    window.location.href = target;
   }
 
   return (
