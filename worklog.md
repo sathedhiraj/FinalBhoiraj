@@ -22,3 +22,21 @@ Stage Summary:
 - Lint clean; dev log shows only 200 responses, no runtime errors.
 - Tech adaptation note: the requested Flutter+Firebase/MongoDB stack is not available here, so the app is implemented as a production-ready Next.js 16 mobile-first PWA using Prisma+SQLite (database), NextAuth credentials (auth), local /public/uploads (file storage, replaces Firebase Storage), html-to-image (receipt image), recharts (reports). Security is enforced server-side: every API route uses requireAdmin / requireAdminWithMandal, so only authenticated admins access their own mandal's data — mirroring the Firebase Security Rules requirement at the API/DB layer.
 - Default admin credentials (auto-seeded on first visit): admin@mandal.in / admin123.
+
+---
+Task ID: 2
+Agent: main (Z.ai Code)
+Task: Redesign the income receipt to match the user's traditional festive demo (Ganesha deity header, decorative badges, scalloped divider, cream form area, styled amount box) and fix the Share Receipt function.
+
+Work Log:
+- Analyzed the user's demo receipt image (upload/receipt22222.jpg) with VLM to extract the exact design: portrait card, double maroon border, top zone with Ganesha deity over a saffron→red radial gradient with sunburst rays, two circular serrated "seal" badges (mandal name + year), scalloped divider, cream form area, red decorative title, date/receipt-no row, amount box with ₹ symbol and red border, dotted divider, footer with organizer + mandal name + thank-you, red bottom bar.
+- Generated a high-quality Lord Ganesha deity image via the image-generation skill (z-ai image) and saved to /public/ganesh-bappa.png (1024x1024, verified excellent by VLM).
+- Completely rewrote src/components/app/receipt-screen.tsx with a scoped CSS design (RECEIPT_CSS) replicating every element of the demo: .rc-frame double border, .rc-header with radial gradient + conic-gradient sunburst + deity circle, .rc-badge serrated circular seals (via radial-gradient mask), SVG scalloped divider, .rc-body cream area with .rc-title/.rc-subtitle/.rc-meta-row/.rc-field/.rc-amount-box/.rc-dotted/.rc-footer/.rc-bottom-bar.
+- Preloaded the Ganesha image as a base64 data URL on mount so html-to-image can capture it without CORS/taint issues.
+- Fixed the full-height capture bug: the original getPngBlob captured only the visible scroll viewport (1020x966, bottom cut off). Rewrote it to clone the card into an off-screen holder (position:fixed; left:-99999px; width:340px) with no overflow constraints, copy the <style> tag, and capture with explicit width:340 + height:scrollHeight. Verified the exported PNG is now 1020x2130 (full portrait) with ALL 16 design elements present and readable.
+- Fixed Share Receipt: now tries (1) navigator.share with file, (2) navigator.share with text+url, (3) fallback download + clipboard copy. Handles AbortError (user cancel) gracefully. Verified the fallback downloads the image AND copies receipt details with toast "Receipt image downloaded & details copied. Paste into WhatsApp etc."
+- Also fixed an unrelated env regression: .env had lost NEXTAUTH_SECRET/NEXTAUTH_URL causing JWEDecryptionFailed + stuck splash screen. Restored .env and restarted the dev server.
+
+Stage Summary:
+- New festive receipt design verified end-to-end: login → add income (₹5,000 Donation from Suresh Patil) → slide to save → receipt screen → Save Image exports a complete 1020x2130 PNG with Ganesha header, badges, all fields, amount box, footer. Share Receipt downloads image + copies details (native share sheet on mobile). VLM confirmed all 16 design elements present and readable. Lint clean.
+- Receipt now matches the traditional Indian Ganesh Mandal aesthetic from the user's demo.
