@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth-server";
 
 const DEFAULT_EMAIL = "admin@mandal.in";
-const DEFAULT_PASSWORD = "admin123";
+const DEFAULT_PASSWORD = "admin12345";
 
 /**
  * Bootstrap / recovery endpoint for the default admin account.

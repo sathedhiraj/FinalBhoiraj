@@ -10,7 +10,7 @@ export function Splash() {
       </div>
       <div className="text-center">
         <p className="text-xl font-semibold tracking-wide">Ganesh Mandal</p>
-        <p className="text-sm text-white/80">Management &amp; Accounting</p>
+        <p className="text-sm text-white/80"> BhoiRaj Management &amp; Accounting</p>
       </div>
       <div className="mt-2 h-1.5 w-32 rounded-full bg-white/25 overflow-hidden">
         <div className="h-full w-1/3 bg-white rounded-full animate-[slide_1.2s_ease-in-out_infinite]" />

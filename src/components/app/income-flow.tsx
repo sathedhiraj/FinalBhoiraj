@@ -242,7 +242,7 @@ function Step3({ flow, setFlow, onContinue }: { flow: Flow; setFlow: (f: Flow) =
         <Field icon={<User className="h-4 w-4" />} label="Donor Name *">
           <Input
             className="h-12 rounded-xl pl-9"
-            placeholder="e.g. Ansha Patil"
+            placeholder="e.g.Donar Name"
             value={flow.donorName}
             onChange={(e) => setFlow({ ...flow, donorName: e.target.value })}
           />
@@ -251,19 +251,19 @@ function Step3({ flow, setFlow, onContinue }: { flow: Flow; setFlow: (f: Flow) =
           <Input
             className="h-12 rounded-xl pl-9"
             inputMode="tel"
-            placeholder="98765 43210"
+            placeholder="Enter Your No"
             value={flow.mobile}
             onChange={(e) => setFlow({ ...flow, mobile: e.target.value })}
           />
         </Field>
-        <Field icon={<StickyNote className="h-4 w-4" />} label="Note (Optional)">
+        {/*<Field icon={<StickyNote className="h-4 w-4" />} label="Note (Optional)">
           <Input
             className="h-12 rounded-xl pl-9"
             placeholder="Any remark…"
             value={flow.note}
             onChange={(e) => setFlow({ ...flow, note: e.target.value })}
           />
-        </Field>
+        </Field>*/}
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export function ReceiptScreen({ me, tx, onDone }: { me: MeResponse; tx: Transact
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/ganesh-bappa.png");
+        const res = await fetch("/Bhoiraj.png");
         const blob = await res.blob();
         const reader = new FileReader();
         reader.onload = () => {
@@ -205,13 +205,13 @@ export function ReceiptScreen({ me, tx, onDone }: { me: MeResponse; tx: Transact
               </div>
               {/* Right badge: year */}
               <div className="rc-badge rc-badge-right">
-                <span className="rc-badge-year">{festival?.year ?? ""}</span>
-                <span className="rc-badge-sub">YEAR</span>
+                <span className="rc-badge-year">वर्ष ७९ वे</span>
+                <span className="rc-badge-sub"></span>
               </div>
               {/* scalloped divider */}
-              <svg className="rc-scallop" viewBox="0 0 340 24" preserveAspectRatio="none" aria-hidden>
+              {/*<svg className="rc-scallop" viewBox="0 0 340 24" preserveAspectRatio="none" aria-hidden>
                 <path d="M0,0 Q17,24 34,0 T68,0 T102,0 T136,0 T170,0 T204,0 T238,0 T272,0 T306,0 T340,0 L340,0 L0,0 Z" />
-              </svg>
+              </svg>*/}
             </div>
 
             {/* === Body: cream form area === */}

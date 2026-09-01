@@ -137,7 +137,7 @@ export function AuthScreen() {
           🙏
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Shree Ganesh</h1>
-        <p className="text-sm text-white/85 mt-1">Ganesh Mandal Management &amp; Accounting</p>
+        <p className="text-sm text-white/85 mt-1">BhoiRaj Ganesh Mandal Taloda &amp; Accounting</p>
         <p className="text-xs text-white/70 mt-3">Admin Login</p>
       </div>
 
@@ -153,7 +153,7 @@ export function AuthScreen() {
                   type="email"
                   autoComplete="email"
                   inputMode="email"
-                  placeholder="admin@mandal.in"
+                  placeholder="Please Enter Your Admin Email Id "
                   className="pl-9 h-12 rounded-xl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -200,7 +200,7 @@ export function AuthScreen() {
           )}
 
           {/* Always-visible default credentials + one-click recovery. */}
-          <div className="text-xs rounded-xl bg-muted px-3 py-3 leading-relaxed space-y-2">
+          {/*<div className="text-xs rounded-xl bg-muted px-3 py-3 leading-relaxed space-y-2">
             <div>
               <span className="font-semibold text-foreground">Default admin credentials:</span>
               <br />
@@ -221,7 +221,11 @@ export function AuthScreen() {
                 "Reset password & log in"
               )}
             </button>
-          </div>
+          </div> */}
+
+
+
+
         </div>
       </div>
 
