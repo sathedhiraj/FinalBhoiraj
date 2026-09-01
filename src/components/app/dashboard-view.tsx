@@ -1,18 +1,21 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useState } from "react";
 import { api, type MeResponse, type Transaction } from "@/lib/api";
 import { SummaryCard } from "@/components/app/summary-card";
 import { TransactionCard } from "@/components/app/transaction-card";
 import { useAppStore } from "@/store/app-store";
 import { formatRupee } from "@/lib/format";
-import { Wallet, TrendingUp, TrendingDown, ChevronRight, ReceiptText } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, ChevronRight, ReceiptText, FileDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/app/empty-state";
 
 export function DashboardView({ me }: { me: MeResponse }) {
   const festivalId = me.activeFestival?.id ?? me.festivals[0]?.id ?? "";
   const refreshKey = useAppStore((s) => s.refreshKey);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["transactions", festivalId, refreshKey],
@@ -26,6 +29,34 @@ export function DashboardView({ me }: { me: MeResponse }) {
   const balance = totalIncome - totalExpense;
   const recent = txs.slice(0, 6);
   const store = useAppStore();
+
+  async function downloadPdf() {
+    if (!festivalId) return toast.error("No active festival.");
+    setPdfLoading(true);
+    try {
+      const res = await fetch(`/api/report-pdf?festivalId=${festivalId}`);
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d?.error || "Failed to generate PDF.");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const cd = res.headers.get("Content-Disposition") || "";
+      const match = cd.match(/filename="([^"]+)"/);
+      a.download = match?.[1] || `mandal-report-${new Date().toISOString().slice(0, 10)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      toast.success("PDF report downloaded.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate PDF.");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-5 pb-2">
@@ -63,6 +94,29 @@ export function DashboardView({ me }: { me: MeResponse }) {
           value={me.activeFestival ? `${me.activeFestival.name}` : "—"}
           icon={<Wallet className="h-4 w-4" />}
         />
+      </section>
+
+      {/* Download PDF report */}
+      <section>
+        <button
+          onClick={downloadPdf}
+          disabled={pdfLoading || txs.length === 0}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 h-12 rounded-2xl font-semibold text-sm transition shadow-sm",
+            "bg-primary text-primary-foreground hover:opacity-90 active:scale-[0.99]",
+            (pdfLoading || txs.length === 0) && "opacity-60 cursor-not-allowed",
+          )}
+        >
+          {pdfLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4" />
+          )}
+          {pdfLoading ? "Generating PDF…" : "Download PDF Report"}
+        </button>
+        <p className="text-[11px] text-muted-foreground text-center mt-1.5">
+          Includes current balance, all income &amp; expense records with names.
+        </p>
       </section>
 
       {/* Recent entries */}

@@ -40,3 +40,17 @@ Work Log:
 Stage Summary:
 - New festive receipt design verified end-to-end: login → add income (₹5,000 Donation from Suresh Patil) → slide to save → receipt screen → Save Image exports a complete 1020x2130 PNG with Ganesha header, badges, all fields, amount box, footer. Share Receipt downloads image + copies details (native share sheet on mobile). VLM confirmed all 16 design elements present and readable. Lint clean.
 - Receipt now matches the traditional Indian Ganesh Mandal aesthetic from the user's demo.
+
+---
+Task ID: 3
+Agent: main (Z.ai Code)
+Task: Add a PDF download button that exports the current balance, all income records (with donor names), and all expense records (with vendor names).
+
+Work Log:
+- Installed pdfkit + @types/pdfkit for server-side PDF generation.
+- Created GET /api/report-pdf?festivalId= route that: authenticates admin, fetches all transactions for the active festival, generates an A4 PDF with: maroon header band (Shree Ganesh + mandal name + festival), three summary cards (Total Income green, Total Expense red, Current Balance maroon), an INCOME RECORDS table (Date, Donor Name, Head, Mode, Receipt, Amount columns with green amounts + total), an EXPENSE RECORDS table (Date, Vendor/Pay To, Category, Mode, Note, Amount columns with red amounts + total), and a footer (Ganpati Bappa Morya! + address). Streams back as attachment download.
+- Added a "Download PDF Report" button to the Dashboard view (between Quick stats and Recent entries) with loading state and toast feedback; disabled when no transactions.
+- Fixed a PDF currency rendering bug: PDFKit's default Helvetica font cannot render the Indian Rupee glyph (₹) — it showed as a "1"-like char making "Rs. 4,500" read as "114,500". Added a pdfRupee() helper that uses "Rs." instead, and replaced all formatRupee calls in the route.
+
+Stage Summary:
+- PDF report verified end-to-end: Dashboard → Download PDF Report → file downloads as report-bhairaj-navayuvak-ganesh-mandal-2026-09-01.pdf → VLM confirmed all sections present and correct: Total Income Rs. 15,500, Total Expense Rs. 1,000, Current Balance Rs. 14,500 (correctly = income − expense), income table with donor names (Ansha Patil, Ravi Kumar, Suresh Patil...) and amounts in green, expense table with vendor name (Sharma Tent House) and amount in red, footer with Ganpati Bappa Morya. Lint clean.
