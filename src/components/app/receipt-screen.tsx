@@ -8,6 +8,7 @@ import { formatDateDMY, festivalLabel, formatRupee } from "@/lib/format";
 import { toPng } from "html-to-image";
 import { Download, Share2, Check, Loader2 } from "lucide-react";
 
+
 /**
  * Traditional festive Ganesh Mandal receipt.
  *
@@ -201,7 +202,9 @@ export function ReceiptScreen({ me, tx, onDone }: { me: MeResponse; tx: Transact
               </div>
               {/* Left badge: mandal name */}
               <div className="rc-badge rc-badge-left">
-                <span className="rc-badge-text">{mandal.name}</span>
+                <span className="rc-badge-text">
+                  <img src="/logs.png" alt="logo" />
+                </span>
               </div>
               {/* Right badge: year */}
               <div className="rc-badge rc-badge-right">
@@ -360,9 +363,9 @@ const RECEIPT_CSS = `
 }
 .rc-deity {
   position: relative;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
+  width: 350px;
+  height: 300px;
+  border-radius: none;
   overflow: hidden;
   background: radial-gradient(circle, #ffe9a8 0%, #f4c542 70%, #c98a1a 100%);
   border: 3px solid #fff;
@@ -446,6 +449,10 @@ const RECEIPT_CSS = `
   border-radius: 0 0 8px 8px;
   z-index: 2;
 }
+
+
+
+
 .rc-title {
   text-align: center;
   color: #7a1212;
@@ -598,4 +605,14 @@ const RECEIPT_CSS = `
   border-radius: 0 0 8px 8px;
   background: linear-gradient(90deg, #7a1212 0%, #9c1b1b 50%, #7a1212 100%);
 }
+
+.rc-badge-text{
+width:60px;
+height:60px;
+margin-top:-7px;
+margin-bottom:-8px;
+
+}
+
+
 `;
